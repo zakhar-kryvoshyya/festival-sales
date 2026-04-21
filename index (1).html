@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Продажі на фестивалі</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:15px}
+.container{max-width:600px;margin:0 auto;padding:16px}
+h1{font-size:18px;font-weight:600;margin-bottom:4px}
+.subtitle{font-size:13px;color:#666;margin-bottom:20px}
+.top-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.top-grid select,.top-grid input{padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#fff;color:#1a1a1a;width:100%}
+.top-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+.top-grid select{padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#fff;color:#1a1a1a;width:100%}
+.cat-tabs{display:flex;gap:6px;margin-bottom:12px}
+.cat-tab{padding:6px 14px;font-size:13px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;color:#666}
+.cat-tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.table-wrap{border:1px solid #e0e0e0;border-radius:12px;overflow:hidden;margin-bottom:16px;background:#fff}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+thead tr{background:#f9f9f7}
+th{padding:8px 8px;font-size:11px;font-weight:500;color:#888;text-align:left;border-bottom:1px solid #e8e8e8}
+th:nth-child(1){width:40%}th:nth-child(2){width:14%}th:nth-child(3){width:16%}th:nth-child(4){width:16%}th:nth-child(5){width:14%}
+td{padding:6px 7px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+.prod-name{font-size:11px;color:#1a1a1a;line-height:1.3}
+.prod-price{font-size:11px;color:#888;text-align:right}
+td input[type=number]{width:100%;font-size:12px;padding:4px;border:1px solid #e0e0e0;border-radius:6px;text-align:center;background:#fafafa}
+td input[type=number]:focus{outline:none;border-color:#999;background:#fff}
+.row-sum{font-size:11px;color:#555;text-align:right}
+.totals{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.stat{background:#f9f9f7;border-radius:8px;padding:12px 14px;border:1px solid #ececec}
+.stat-label{font-size:11px;color:#888;margin-bottom:3px}
+.stat-val{font-size:18px;font-weight:600;color:#1a1a1a}
+.stat-sub{font-size:11px;color:#aaa;margin-top:1px}
+.stat.total{grid-column:1/-1;background:#e8f4ee;border-color:#c5dfd0}
+.stat.total .stat-val{font-size:22px;color:#1a6b3a}
+.stat.total .stat-label{color:#2d7a4a}
+.stat.total .stat-sub{color:#4a9a6a}
+.btn-save{width:100%;padding:12px;font-size:15px;font-weight:600;background:#1a1a1a;color:#fff;border:none;border-radius:10px;cursor:pointer;margin-top:4px}
+.btn-save:hover{background:#333}
+.btn-save:active{transform:scale(0.99)}
+.btn-save:disabled{background:#aaa;cursor:default}
+.toast{display:none;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:12px;text-align:center}
+.toast.ok{display:block;background:#e8f4ee;color:#1a6b3a;border:1px solid #c5dfd0}
+.toast.err{display:block;background:#fdecea;color:#c0392b;border:1px solid #f5c6c2}
+.toast.info{display:block;background:#fff8e1;color:#7a5c00;border:1px solid #ffe082}
+.btn-history{width:100%;margin-top:8px;padding:9px;font-size:13px;background:#fff;border:1px solid #ddd;border-radius:10px;cursor:pointer;color:#555}
+.history{display:none;margin-top:12px;border:1px solid #e0e0e0;border-radius:12px;overflow:hidden;background:#fff}
+.history.open{display:block}
+.hist-item{padding:10px 14px;border-bottom:1px solid #f0f0f0}
+.hist-item:last-child{border-bottom:none}
+.hist-meta{font-weight:600;font-size:13px;color:#1a1a1a;margin-bottom:2px}
+.hist-sub{font-size:11px;color:#888;margin-bottom:5px}
+.hist-row{display:flex;justify-content:space-between;color:#888;padding:1px 0;font-size:11px}
+.hist-total{color:#1a1a1a;font-weight:600;border-top:1px solid #f0f0f0;margin-top:4px;padding-top:4px;font-size:12px}
+.empty{padding:1rem;text-align:center;color:#aaa;font-size:13px}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Продажі на фестивалі</h1>
+  <p class="subtitle">Введи кількість проданих одиниць по кожному товару</p>
+
+  <div class="top-grid">
+    <select id="day-sel">
+      <option value="">День...</option>
+      <option value="День 1 — 23.04">День 1 — 23.04</option>
+      <option value="День 2 — 24.04">День 2 — 24.04</option>
+      <option value="День 3 — 25.04">День 3 — 25.04</option>
+      <option value="День 4 — 26.04">День 4 — 26.04</option>
+    </select>
+    <select id="shift-sel">
+      <option value="">Зміна...</option>
+      <option value="Зміна 1">Зміна 1</option>
+      <option value="Зміна 2">Зміна 2</option>
+    </select>
+  </div>
+  <div class="top-grid">
+    <select id="seller1-sel">
+      <option value="">Продавець 1...</option>
+      <option>Іра</option>
+      <option>Ліля</option>
+      <option>Богдана</option>
+      <option>Лєра</option>
+      <option>Єгор</option>
+      <option>Аня</option>
+      <option>Захар</option>
+      <option>Олег</option>
+    </select>
+    <select id="seller2-sel">
+      <option value="">Продавець 2...</option>
+      <option>Іра</option>
+      <option>Ліля</option>
+      <option>Богдана</option>
+      <option>Лєра</option>
+      <option>Єгор</option>
+      <option>Аня</option>
+      <option>Захар</option>
+      <option>Олег</option>
+    </select>
+  </div>
+
+  <div class="cat-tabs">
+    <div class="cat-tab active" onclick="setTab('all',this)">Всі</div>
+    <div class="cat-tab" onclick="setTab('Книга',this)">Книги</div>
+    <div class="cat-tab" onclick="setTab('Мерч',this)">Мерч</div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Товар</th>
+          <th style="text-align:right">Ціна</th>
+          <th style="text-align:center">Готівка</th>
+          <th style="text-align:center">Термінал</th>
+          <th style="text-align:right">Сума</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="totals">
+    <div class="stat">
+      <div class="stat-label">Готівка</div>
+      <div class="stat-val" id="tot-cash-uah">0 грн</div>
+      <div class="stat-sub" id="tot-cash-qty">0 шт.</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Термінал</div>
+      <div class="stat-val" id="tot-term-uah">0 грн</div>
+      <div class="stat-sub" id="tot-term-qty">0 шт.</div>
+    </div>
+    <div class="stat total">
+      <div class="stat-label">Загальна виручка</div>
+      <div class="stat-val" id="tot-all-uah">0 грн</div>
+      <div class="stat-sub" id="tot-all-qty">0 шт.</div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <button class="btn-save" id="btn-save" onclick="saveDay()">Зберегти підсумок зміни</button>
+  <button class="btn-history" onclick="toggleHistory()">Показати історію ▾</button>
+  <div class="history" id="history-box"></div>
+</div>
+
+<script>
+const WEBHOOK='https://script.google.com/macros/s/AKfycbx77BNgrPRoBDEgXe5qS3IFJNrh1UguxNWpWpwHEmAT5B39IUNP0KPClhx8qg6cA-aI/exec';
+
+const PRODUCTS=[
+  {name:'Антологія "THE ARC" (№1)',price:500,cat:'Книга'},
+  {name:'Антологія "THE ARC" (№2)',price:500,cat:'Книга'},
+  {name:'Антологія "THE BLACK SEA WHALE" (№1)',price:500,cat:'Книга'},
+  {name:'Антологія "THE BLACK SEA WHALE" (№2)',price:500,cat:'Книга'},
+  {name:'Антологія "THE BLACK SEA WHALE" (№3)',price:500,cat:'Книга'},
+  {name:'Антологія "ТРЕТЯ ДІЯ" (№3)',price:500,cat:'Книга'},
+  {name:'Книга "ЗДОРОВИЙ ГЛУЗД"',price:315,cat:'Книга'},
+  {name:'Книга "КЛЕПТОКРАТІЯ ПО-АМЕРИКАНСЬКИ"',price:460,cat:'Книга'},
+  {name:'Книга "КОРОТКА ІСТОРІЯ МІЗОГІНІЇ"',price:455,cat:'Книга'},
+  {name:'Книга "Куди подівся Коцик?"',price:375,cat:'Книга'},
+  {name:'Книга "МОЧИ МАНТУ"',price:350,cat:'Книга'},
+  {name:'Книга "НЕСПРОМОЖНА ДЕРЖАВА"',price:395,cat:'Книга'},
+  {name:'Комплект листівок "Чуємо, бачимо, пишемо"',price:400,cat:'Мерч'},
+  {name:'Листівка "Божественне втручання"',price:80,cat:'Мерч'},
+  {name:'Листівка "Від Цариці Небесної до дияволиці"',price:80,cat:'Мерч'},
+  {name:'Листівка "Жінки біля воріт"',price:80,cat:'Мерч'},
+  {name:'Листівка "Звільнення"',price:80,cat:'Мерч'},
+  {name:'Листівка "Коротка історія мізогінії"',price:80,cat:'Мерч'},
+  {name:'Листівка "Мізогінія в добу надлюдини"',price:80,cat:'Мерч'},
+  {name:'Листівка "Пандорини дочки"',price:80,cat:'Мерч'},
+  {name:'Листівка "Політики тіла"',price:80,cat:'Мерч'},
+  {name:'Листівка "Прекрасний новий світ"',price:80,cat:'Мерч'},
+  {name:'Листівка "Секрети вікторіанців"',price:80,cat:'Мерч'},
+  {name:'Стікерпак "Здоровий Глузд поспішає на допомогу"',price:60,cat:'Мерч'},
+  {name:'Стікерпак "Потаємне життя Коцика із Сихова"',price:60,cat:'Мерч'},
+  {name:'Футболка "The future is female" S',price:700,cat:'Мерч'},
+  {name:'Футболка "The future is female" M',price:700,cat:'Мерч'},
+  {name:'Футболка "The future is female" L',price:700,cat:'Мерч'},
+  {name:'Футболка "The future is female" XL',price:700,cat:'Мерч'},
+  {name:'Хустка "Два кольори"',price:300,cat:'Мерч'},
+];
+
+let products=JSON.parse(localStorage.getItem('zn_p2')||'null');
+if(!products||products.length!==PRODUCTS.length){
+  products=PRODUCTS.map(p=>({...p,cash:0,term:0}));
+}
+let history=JSON.parse(localStorage.getItem('zn_h2')||'[]');
+let currentTab='all';
+
+const tbody=document.getElementById('tbody');
+
+function setTab(tab,el){
+  currentTab=tab;
+  document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+function render(){
+  tbody.innerHTML='';
+  products.forEach((p,i)=>{
+    if(currentTab!=='all'&&p.cat!==currentTab)return;
+    const sum=p.price*((p.cash||0)+(p.term||0));
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><div class="prod-name">${p.name}</div></td>
+      <td class="prod-price">${p.price}</td>
+      <td><input type="number" min="0" step="1" value="${p.cash||0}" oninput="upd(${i},'cash',this.value)"></td>
+      <td><input type="number" min="0" step="1" value="${p.term||0}" oninput="upd(${i},'term',this.value)"></td>
+      <td class="row-sum" id="rs-${i}">${sum>0?fmt(sum):''}</td>`;
+    tbody.appendChild(tr);
+  });
+  calcTotals();
+}
+
+function upd(i,field,val){
+  products[i][field]=Math.max(0,parseInt(val)||0);
+  const sum=products[i].price*((products[i].cash||0)+(products[i].term||0));
+  const el=document.getElementById('rs-'+i);
+  if(el)el.textContent=sum>0?fmt(sum):'';
+  calcTotals();
+}
+
+function fmt(n){return n.toLocaleString('uk-UA');}
+
+function calcTotals(){
+  let cQ=0,tQ=0,cU=0,tU=0;
+  products.forEach(p=>{
+    cQ+=p.cash||0;tQ+=p.term||0;
+    cU+=p.price*(p.cash||0);tU+=p.price*(p.term||0);
+  });
+  document.getElementById('tot-cash-uah').textContent=fmt(cU)+' грн';
+  document.getElementById('tot-cash-qty').textContent=cQ+' шт.';
+  document.getElementById('tot-term-uah').textContent=fmt(tU)+' грн';
+  document.getElementById('tot-term-qty').textContent=tQ+' шт.';
+  document.getElementById('tot-all-uah').textContent=fmt(cU+tU)+' грн';
+  document.getElementById('tot-all-qty').textContent=(cQ+tQ)+' шт.';
+}
+
+function getSellers(){
+  const s=[
+    document.getElementById('seller1-sel').value,
+    document.getElementById('seller2-sel').value,
+  ].filter(Boolean);
+  return s.join(', ')||'—';
+}
+
+async function saveDay(){
+  const day=document.getElementById('day-sel').value;
+  const shift=document.getElementById('shift-sel').value;
+  if(!day){alert('Обери день');return;}
+  if(!shift){alert('Обери зміну');return;}
+
+  const sellers=getSellers();
+  let cQ=0,tQ=0,cU=0,tU=0;
+  const items=[];
+  products.forEach(p=>{
+    if((p.cash||0)+(p.term||0)>0){
+      items.push({name:p.name,cat:p.cat,price:p.price,cash:p.cash||0,term:p.term||0});
+      cQ+=p.cash||0;tQ+=p.term||0;
+      cU+=p.price*(p.cash||0);tU+=p.price*(p.term||0);
+    }
+  });
+  if(!items.length){alert('Введи хоча б один продаж');return;}
+
+  const record={day,shift,sellers,cQ,tQ,cU,tU,items};
+  history.unshift(record);
+  localStorage.setItem('zn_h2',JSON.stringify(history));
+  localStorage.setItem('zn_p2',JSON.stringify(products.map(p=>({...p,cash:0,term:0}))));
+  products.forEach(p=>{p.cash=0;p.term=0;});
+
+  const btn=document.getElementById('btn-save');
+  btn.disabled=true;
+  showToast('Відправляємо в Google Sheets…','info');
+
+  try{
+    await fetch(WEBHOOK,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({day,shift,sellers,items,cQ,tQ,cU,tU})
+    });
+    showToast('Збережено та відправлено в Google Sheets ✓','ok');
+  }catch(e){
+    showToast('Локально збережено. Перевір інтернет-з\'єднання.','err');
+  }
+
+  btn.disabled=false;
+  render();
+  renderHistory();
+}
+
+function showToast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast '+type;
+  if(type!=='info')setTimeout(()=>t.className='toast',4000);
+}
+
+function toggleHistory(){
+  const b=document.getElementById('history-box');
+  b.classList.toggle('open');
+  renderHistory();
+}
+
+function renderHistory(){
+  const b=document.getElementById('history-box');
+  if(!b.classList.contains('open'))return;
+  if(!history.length){b.innerHTML='<div class="empty">Ще немає збережених змін</div>';return;}
+  b.innerHTML=history.map(h=>`<div class="hist-item">
+    <div class="hist-meta">${h.day} — ${h.shift}</div>
+    <div class="hist-sub">${h.sellers}</div>
+    ${h.items.map(it=>`<div class="hist-row"><span>${it.name}</span><span>г:${it.cash} т:${it.term} — ${fmt(it.price*(it.cash+it.term))} грн</span></div>`).join('')}
+    <div class="hist-row hist-total"><span>Готівка</span><span>${fmt(h.cU)} грн / ${h.cQ} шт.</span></div>
+    <div class="hist-row hist-total"><span>Термінал</span><span>${fmt(h.tU)} грн / ${h.tQ} шт.</span></div>
+    <div class="hist-row hist-total"><span>Разом</span><span>${fmt(h.cU+h.tU)} грн</span></div>
+  </div>`).join('');
+}
+
+render();
+</script>
+</body>
+</html>
